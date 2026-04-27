@@ -1,24 +1,31 @@
-import * as Location from 'expo-location'
-import { useState, useEffect } from 'react'
+import * as Location from "expo-location"; // Módulo de localizaçõ do Expo
+import { useEffect, useState } from "react"; // Os Hooks de Efeitos Colaterais e Estado/Ciclo de Vida do React
 
-export default function useLocation(){
-    const [coords, setCoords] = useState(null)
-    const [errorMsg, setErrorMsg] = useState(null)
+export default function useLocation() {
+  const [coords, setCoords] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
 
-    useEffect(() => { // Efeito colateral para obter
-        (async () => {
-            let {status} = await Location.requestForegroundPermissionsAsync()
-            if (status !== 'granted') {
-                setErrorMsg('Permissão de localização negada')
-                return
-            }
-            let location = await Location.getCurrentPositionAsync({}) // obtém a localização
-            setCoords({
-                latitude: location.coords.latitude, // define as coordenadas da latitude
-                longitude: location.coords.longitude, // define as coordenadas da longitude
-            }) // Atualiza o estado com as coordenadas obtidas
-        })() // Executa a função assíncrona
+  useEffect(() => {
+    // Efeito colateral para obter a localização
+    (async () => {
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync(); // Solicita permissão para acessar a localização
+        if (status !== "granted") {
+          setErrorMsg("Permissão negada para acessar a localização");
+          return;
+        }
 
-    }, []) // Array de dependências vazio para executar apenas uma vez
-    return {coords, errorMsg} // Retorna as coordenadas e a mensagem de erro
+        let location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.High, // Define a acurácia como alta
+        });
+        setCoords({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+      } catch (error) {
+        setErrorMsg("Erro ao obter a localização");
+      }
+    })(); // Função auto-invoca para obter a localização
+  }, []); // O array vazio [] significa que o efeito só será executado um vez (semelhante ao componentDidMount)
+  return { coords, errorMsg };
 }
